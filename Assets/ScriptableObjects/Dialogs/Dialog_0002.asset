@@ -19,5 +19,5 @@ MonoBehaviour:
   choices:
   - {fileID: 11400000, guid: 16277ef8253cfc5419c3f3498896a9a6, type: 2}
   - {fileID: 11400000, guid: e9c64ec06377ffd4f909cad7e7328222, type: 2}
-  portrait: {fileID: 0}
+  portrait: {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
   portraitPath: 

@@ -18,5 +18,5 @@ MonoBehaviour:
     \uC55E\uC5D0\uB294 \uB450 \uAC08\uB798 \uAE38\uC774 \uC788\uC2B5\uB2C8\uB2E4."
   nextld: 2
   choices: []
-  portrait: {fileID: 0}
+  portrait: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   portraitPath: 
