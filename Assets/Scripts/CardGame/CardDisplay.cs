@@ -16,18 +16,21 @@ public class CardDisplay : MonoBehaviour
     public TextMeshPro descriptionText;          //설명 텍스트
 
     //카드 상태
-    private bool isDragging = false;
+    public bool isDragging = false;
     private Vector3 originalPosition;            //드래그 전 위치
 
     //레이어 마스크
     public LayerMask enemyLayer;
     public LayerMask playerLayer;
+
+    private CardManager cardManager;            //카드 매니저 참조 추가
     void Start()
     {
         //레이어 마스크 설정
         playerLayer = LayerMask.GetMask("Player");
         enemyLayer = LayerMask.GetMask("Enemy");
 
+        cardManager = FindObjectOfType<CardManager>();
 
         SetupCard(cardData);
     }
@@ -72,6 +75,14 @@ public class CardDisplay : MonoBehaviour
 
     private void OnMouseUp()
     {
+        CharacterStates playerStates = FindObjectOfType<CharacterStates>();
+        if (playerStates == null || playerStates.currentMana < cardData.manaCost)         //마나 검사
+        {
+            Debug.Log($"마나가 부족합니다! (필요 : {cardData.manaCost}, 현재 : {playerStates?.currentMana ?? 0})");
+            transform.position = originalPosition;
+            return;
+        }
+
         isDragging = false;
 
         //레이캐스트로 타겟 감지
@@ -102,10 +113,10 @@ public class CardDisplay : MonoBehaviour
                 }
             }
         }
-        else if(Physics.Raycast(ray,out hit, Mathf.Infinity, playerLayer))
+        else if (Physics.Raycast(ray, out hit, Mathf.Infinity, playerLayer))
         {
             //플레이어에게 힐 효과 적용
-            CharacterStates playerStates = hit.collider.GetComponent<CharacterStates>();
+            //CharacterStates playerStates = hit.collider.GetComponent<CharacterStates>();
             if (playerStates != null)
             {
                 if (cardData.cardType == CardData.CardType.Heal)
@@ -121,15 +132,35 @@ public class CardDisplay : MonoBehaviour
                 }
             }
         }
+        else if (cardManager != null)
+        {
+            //버린 카드 더미 근처에 드롭했는지 감지
+            float disToDiscard = Vector3.Distance(transform.position, cardManager.discardPosition.position);
+            if (disToDiscard < 2)
+            {
+                //카드를 버리기
+                cardManager.DiscardCard(cardIndex);
+                return;
+
+            }
+        }
 
         //카드를 사용하지 않았다면 원래 위치로 되돌리기
         if (!cardUsed)
         {
             transform.position = originalPosition;
+            //손패 재정렬 (필요한 경우)
+            cardManager.ArrangeHand();
         }
         else
         {
-            Destroy(gameObject);
+            //카드를 사용했다면 버린 카드 더미로 이동
+            if (cardManager != null)
+                cardManager.DiscardCard(cardIndex);
+
+            //카드 사용시 마나를 소모(카드가 성공적으로 사용된 후 추가)
+            playerStates.UseMana(cardData.manaCost);
+            Debug.Log($"마나를 {cardData.manaCost} 사용 했습니다. (남은 마나 : {playerStates.currentMana})");
         }
     }
 }
